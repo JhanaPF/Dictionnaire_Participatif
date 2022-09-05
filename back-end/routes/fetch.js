@@ -8,7 +8,7 @@ const fetchCtrl = require('../controllers/fetch');
 const auth = require('../middleware/auth');
 
 
-router.get('/fetchNissartDictionnary', auth, fetchCtrl.fetchOneDictionnary);
-router.get('/fetchOneWord/_id/:_id', auth, fetchCtrl.fetchOneWord); 
+router.get('/fetchNissartDictionnary', fetchCtrl.fetchOneDictionnary);
+router.get('/fetchOneWord/_id/:_id', fetchCtrl.fetchOneWord); 
 
 module.exports = router;

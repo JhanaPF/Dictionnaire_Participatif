@@ -7,11 +7,11 @@ module.exports = (req, res, next) => {
     try{
         const token = req.headers.authorization;
         const decodedToken = jwt.verify(token, process.env.SECRET);
-        const userId = decodedToken.userId;
-        req.decodedToken = decodedToken; // nécessaire au middleware isAdmin
+        const tokenUserId = decodedToken.userId;
+        req.decodedToken = decodedToken; // Nécessaire au middleware isAdmin
 
-        if(req.body.userId && req.body.userId !== userId) {throw 'Id non valable'}
-        else  { console.log("Authentifié"); next();}
+        if(req.body.userId && req.body.userId === tokenUserId) { next();} // Si l'id de l'utilisateur est le même que celui encodé dans le token
+        else {throw 'Id non valable'}
     }
     catch (error) {
         console.log("Requête non authentifiée", error);

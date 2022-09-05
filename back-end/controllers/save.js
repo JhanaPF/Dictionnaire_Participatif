@@ -28,7 +28,6 @@ router.saveWord = (req, res) => {
     //console.log("Ajout d'un nouveau mot", req.body)
     if(!isValid(req.body.word, req.body.additionalData)) return res.status(500).json({});
 
-
     const newWord = new nissart({
         ...req.body.word
     });
@@ -38,19 +37,19 @@ router.saveWord = (req, res) => {
     })
 
     newWord.save() 
-    .then((result) => {
-        console.log(result);
-        newAdditionalData.word_id = result._id;
-        newAdditionalData.save();
-    })
-    .then(() => {
-        console.log('Nouveau mot ' + req.body.word.word + ' enregistré');
-        res.status(201).json({});
-    })
-    .catch(error => {
-      res.status(400).json({});
-      console.log(error)
-    });
+        .then((result) => {
+            console.log(result);
+            newAdditionalData.word_id = result._id;
+            newAdditionalData.save();
+        })
+        .then(() => {
+            console.log('Nouveau mot ' + req.body.word.word + ' enregistré');
+            res.status(201).json({});
+        })
+        .catch(error => {
+            res.status(400).json({});
+            console.log(error)
+        });
 };
 
 router.updateWord = (req, res) => {

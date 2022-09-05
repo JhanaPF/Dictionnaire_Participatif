@@ -33,11 +33,10 @@ router.fetchOneWord =  (req, res) => {
 
 router.fetchOneDictionnary =  (req, res) => {    
   //  console.log("Requête dictionnaire");
-    
-    nissart.find()
-    .then(dic => res.status(200).json({message: dic}))
-    .catch(error => res.status(400).json({}));
 
+  nissart.find()
+    .then(dic => res.status(200).json({message: dic}))
+    .catch(error => res.status(400).json({error}));
 }; 
 
 module.exports = router;

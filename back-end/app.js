@@ -30,8 +30,8 @@ app.use((req, res, next) => {
 
 app.use(express.json()); // Express prend toutes les requêtes qui ont comme Content-Type  application/json  et met à disposition leur  body  directement sur l'objet req, ce qui nous permet d'écrire le middleware POST suivant :
 
-app.use('/api/save', saveRoutes); // CRUD
-app.use('/api/fetch', fetchRoutes); 
-app.use('/api/auth', userRoutes); 
+app.use('/save', saveRoutes); // CRUD
+app.use('/fetch', fetchRoutes); 
+app.use('/auth', userRoutes); 
 
 module.exports = app;

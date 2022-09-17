@@ -8,7 +8,7 @@ const saveCtrl = require('../controllers/save');
 const isAdmin = require('../middleware/isAdmin');
 const auth = require('../middleware/auth');
 
-router.post('/saveWord', auth, isAdmin, saveCtrl.saveWord);
+router.post('/word', auth, isAdmin, saveCtrl.saveWord);
 router.post('/updateWord', auth, isAdmin, saveCtrl.updateWord);
 router.delete('/deleteWord', auth, isAdmin, saveCtrl.deleteWord);
 

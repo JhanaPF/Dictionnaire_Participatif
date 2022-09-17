@@ -12,6 +12,7 @@ class App extends React.Component {
 
         this.state={
             token: '',
+            uId: '',
             loggedin: false,
         }
 
@@ -21,7 +22,7 @@ class App extends React.Component {
 
     signIn = (mail, password) => {
         axios.post('http://localhost:3001/api/auth/signin', { mail, password })
-        .then(res => { this.setState({token : res.data.token, loggedin: true}); })
+        .then(res => { this.setState({token : res.data.token, userId: res.data.userId, loggedin: true}); })
         .catch(error => console.log(error));
     }
 
@@ -38,13 +39,8 @@ class App extends React.Component {
     render() {        
         return (
             <div className="App">
-                {this.state.loggedin &&
-                    <Dashboard token={this.state.token}/>
-                }
-
-                {!this.state.loggedin &&
-                    <SignIn signIn={this.signIn} signUp={this.signUp} />
-                }
+                {this.state.loggedin && <Dashboard token={this.state.token} userId={this.state.userId}/> }
+                {!this.state.loggedin && <SignIn signIn={this.signIn} signUp={this.signUp} /> }
             </div>
         );
     }

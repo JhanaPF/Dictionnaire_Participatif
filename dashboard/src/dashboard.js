@@ -51,7 +51,7 @@ class Dashboard extends React.Component {
     }
     
     onFetchDictionnary(){
-        axios.get('http://localhost:3001/api/fetch/fetchNissartDictionnary', {  headers: { 'Authorization': this.props.token } } )
+        axios.get('http://localhost:3001/api/fetch/nissartDictionnary', {  headers: { 'Authorization': this.props.token } } )
         .then(res => {
            // console.log("dictionnaire", res.data.message)
             let setWords = [];
@@ -74,7 +74,7 @@ class Dashboard extends React.Component {
 
         let word = this.state.dictionnary.find(w => w._id === id);
         axios.get(
-            'http://localhost:3001/api/fetch/fetchOneWord/_id/' + id,
+            'http://localhost:3001/api/fetch/oneWord/_id/' + id,
             {  headers: { 'Authorization': this.props.token } } 
         )
         .then(res => { 
@@ -114,13 +114,17 @@ class Dashboard extends React.Component {
             {
                 headers: { "Authorization": this.props.token },
                 data: { word_id: this.state.selectedWord.value }, // req.data = req.body dans le serveur
+                userId: this.props.userId
             },
         )
         .then( (res) => {
             //console.log(res)
             this.setState({deleteModal: false, selectedWord: null, selectedWordData: null}, this.onFetchDictionnary);
         })
-        .catch(function (error) {console.log(error);});
+        .catch(function (error) {
+            this.setState({deleteModal: false, selectedWord: null, selectedWordData: null}, this.onFetchDictionnary);
+            console.log(error);
+        });
     }
 
     selectWord(wordId){
@@ -182,31 +186,43 @@ class Dashboard extends React.Component {
                             }
                     </Col>
                     <Col md='6'>
+                        {this.state.selectedWordData &&
                         <Collapse isOpen={this.state.selectedWordData}>
-                        <Card color="warning" className='text-left my-3'>
-                            <CardBody className='p-1'>
-                                <CardTitle tag="h5">
-                                    Détail du mot sélectionné
-                                </CardTitle>  
-                                <CardText className="p-2"> 
-                                    <i onClick={this.swapModal.bind(this, "editModal")} 
-                                        className="fas fa-edit position-absolute mr-3 fa-xl" style={{right: 15, top: 0}}/>
-                                    <i onClick={this.swapModal.bind(this, 'deleteModal')} 
-                                        className="fas fa-trash-alt fa-xl position-absolute mr-1" style={{right: 0, top: 0}}/>
-                                    <span className="font-weight-bold">Mot : </span> {this.state.selectedWordData && this.state.selectedWordData.word}{', '}{this.state.selectedWordData && Classes.getName(this.state.selectedWordData.class)} <br/>
-                                    <span className="font-weight-bold">Définition en français : </span> {this.state.selectedWordData && this.state.selectedWordData.translated_definition} <br></br>
-                                    <span className="font-weight-bold">Définition en niçois : </span> {this.state.selectedWordData && this.state.selectedWordData.definition} <br></br>
-                                    <span className="font-weight-bold">Niveau de langage : </span> {this.state.selectedWordData && this.state.selectedWordData.level} <br></br>
-                                    <span className="font-weight-bold">Catégorie(s) : </span> {this.state.selectedWordData && this.state.selectedWordData.categories} <br></br>
-                                    <span className="font-weight-bold">Source : </span> {this.state.selectedWordData && (this.state.selectedWordData.source !== null) && Sources.getName(this.state.selectedWordData.source)} <br></br>
-                                    <span className="font-weight-bold">Devinette en niçois : </span> {this.state.selectedWordData && this.state.selectedWordData.additionalData.riddle} <br></br>
-                                    <span className="font-weight-bold">Devinette en français : </span> {this.state.selectedWordData && this.state.selectedWordData.additionalData.translated_riddle} <br></br>
-                                    <span className="font-weight-bold">Anecdotes : </span> {this.state.selectedWordData && this.state.selectedWordData.additionalData.story} <br></br>
-                                    <span className="font-weight-bold">Mot en contexte : </span> {this.state.selectedWordData && this.state.selectedWordData.additionalData.sentence} <br></br>
-                                </CardText>
-                            </CardBody>
-                        </Card>  
+                            <Card color="warning" className='text-left my-3'>
+                                <CardBody className='p-1'>
+                                    <CardTitle tag="h5">
+                                        Détail du mot sélectionné
+                                    </CardTitle>  
+                                    <CardText className="p-2"> 
+                                        <i onClick={this.swapModal.bind(this, "editModal")} 
+                                            className="fas fa-edit position-absolute mr-3 fa-xl" style={{right: 15, top: 0}}/>
+                                        <i onClick={this.swapModal.bind(this, 'deleteModal')} 
+                                            className="fas fa-trash-alt fa-xl position-absolute mr-1" style={{right: 0, top: 0}}/>
+                                        <span className="font-weight-bold"> Mot : </span>
+                                        { this.state.selectedWordData.word}{', '}{ this.state.selectedWordData.class && Classes.getName(this.state.selectedWordData.class)} <br/>
+                                        <span className="font-weight-bold">Définition en français : </span> 
+                                        { this.state.selectedWordData.translated_definition} <br/>
+                                        <span className="font-weight-bold">Définition en niçois : </span> 
+                                        { this.state.selectedWordData.definition} <br/>
+                                        <span className="font-weight-bold">Niveau de langage : </span> 
+                                        { this.state.selectedWordData.level} <br/>
+                                        <span className="font-weight-bold">Catégorie(s) : </span> 
+                                        { this.state.selectedWordData.categories} <br/>
+                                        <span className="font-weight-bold">Source : </span> 
+                                        { (this.state.selectedWordData.source !== null) && Sources.getName(this.state.selectedWordData.source)} <br/>
+                                        <span className="font-weight-bold">Devinette en niçois : </span> 
+                                        { this.state.selectedWordData.additionalData.riddle} <br/>
+                                        <span className="font-weight-bold">Devinette en français : </span> 
+                                        { this.state.selectedWordData.additionalData.translated_riddle} <br/>
+                                        <span className="font-weight-bold">Anecdotes : </span> 
+                                        { this.state.selectedWordData.additionalData.story} <br/>
+                                        <span className="font-weight-bold">Mot en contexte : </span> 
+                                        { this.state.selectedWordData.additionalData.sentence} <br/>
+                                    </CardText>
+                                </CardBody>
+                            </Card>  
                         </Collapse>
+                        }
 
                         <Col className='text-right'>
                             <Button className='text-right mt-1' onClick={this.swapModal.bind(this, "addModal")}>

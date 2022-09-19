@@ -26,6 +26,7 @@ const isValid = (word, additionalData) => {
 
 router.saveWord = (req, res) => {
     //console.log("Ajout d'un nouveau mot", req.body)
+    
     if(!isValid(req.body.word, req.body.additionalData)) return res.status(500).json({});
 
     const newWord = new nissart({

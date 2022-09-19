@@ -22,7 +22,7 @@ class Dashboard extends React.Component {
     constructor(props){
         super(props);
 
-        this.state={
+        this.state = {
             loading: true,
             date: null,
 
@@ -42,7 +42,7 @@ class Dashboard extends React.Component {
 
     componentDidMount(){
         this.onFetchDictionnary();
-        this.clock = setInterval(() => this.setState({ date: moment().locale('oc-lnc').format('MMMM Do YYYY, H:mm') }), 60000);
+        //this.clock = setInterval(() => this.setState({ date: moment().locale('oc-lnc').format('MMMM Do YYYY, H:mm') }), 60000);
     }
 
     componentDidUpdate(){
@@ -51,7 +51,7 @@ class Dashboard extends React.Component {
     }
     
     onFetchDictionnary(){
-        axios.get('http://localhost:3001/api/fetch/nissartDictionnary', {  headers: { 'Authorization': this.props.token } } )
+        axios.get('http://217.160.48.167/api/fetch/nissartDictionnary', {  headers: { 'Authorization': this.props.token } } )
         .then(res => {
            // console.log("dictionnaire", res.data.message)
             let setWords = [];
@@ -60,7 +60,7 @@ class Dashboard extends React.Component {
 
          
             if(this.state.selectedWordData) {
-                console.log(this.state.selectedWordData)
+                //console.log(this.state.selectedWordData)
                 this.onFetchWord(this.state.selectedWordData._id);
             }
 
@@ -74,8 +74,8 @@ class Dashboard extends React.Component {
 
         let word = this.state.dictionnary.find(w => w._id === id);
         axios.get(
-            'http://localhost:3001/api/fetch/oneWord/_id/' + id,
-            {  headers: { 'Authorization': this.props.token } } 
+            'http://217.160.48.167/api/fetch/oneWord/_id/' + id,
+            { headers: { 'Authorization': this.props.token } } 
         )
         .then(res => { 
             //console.log("Requête mot sélectionné = ", res.data.message)
@@ -96,9 +96,9 @@ class Dashboard extends React.Component {
     }
 
     swapModal = (name) =>{
-       // console.log("swapModal")
+        // console.log("swapModal")
 
-        if(this.state[name]){   this.onFetchDictionnary();   }
+        if(this.state[name]){this.onFetchDictionnary();}
 
         this.setState({[name]: !this.state[name]});
     }
@@ -110,11 +110,11 @@ class Dashboard extends React.Component {
 
     delete(){
         axios.delete(
-            'http://localhost:3001/api/save/deleteWord',              
+            'http://217.160.48.167/api/save/deleteWord',              
             {
                 headers: { "Authorization": this.props.token },
-                data: { word_id: this.state.selectedWord.value }, // req.data = req.body dans le serveur
-                userId: this.props.userId
+                data: { word_id: this.state.selectedWord.value, userId: this.props.userId }, // req.data = req.body dans le serveur
+               
             },
         )
         .then( (res) => {
@@ -154,33 +154,23 @@ class Dashboard extends React.Component {
                             value={this.state.selectedWord}
                             onChange={this.handleSelectChange.bind(this, 'selectedWord')}
                             />
-                            {!this.state.loading &&
-                            
+                            {!this.state.loading &&                            
                                 <Table className='mt-2' style={{borderRadius:10 }} bordered hover responsive >
                                     <thead>
                                       <tr>
-                                        <th>
-                                          Mot
-                                        </th>
-                                        <th>
-                                          Définition
-                                        </th>
+                                        <th>Mot</th>
+                                        <th>Définition</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                         {this.state.dictionnary.map((wordData, i) => {
                                             return(
                                                 <tr key={i} onClick={this.selectWord.bind(this, wordData._id)}>
-                                                    <th scope="row">
-                                                        {wordData.word}
-                                                    </th>
-                                                    <td>
-                                                        {wordData.translated_definition}
-                                                    </td>
+                                                    <th scope="row">{wordData.word}</th>
+                                                    <td>{wordData.translated_definition}</td>
                                                 </tr>
                                             )
-                                        })}
-        
+                                        })}        
                                     </tbody>
                                 </Table>    
                             }
@@ -262,6 +252,7 @@ class Dashboard extends React.Component {
                         addModal
                         swapModal={this.swapModal.bind(this, "addModal")}
                         token={this.props.token}
+                        userId={this.props.userId}
                         reloadModal={this.reloadModal.bind(this, "addModal")}
                     />
                 }  
@@ -272,6 +263,7 @@ class Dashboard extends React.Component {
                         wordData={this.state.selectedWordData}
                         swapModal={this.swapModal.bind(this, "editModal")}
                         token={this.props.token}
+                        userId={this.props.userId}
                         reloadModal={this.reloadModal.bind(this, "editModal")}
                     />
                 }               

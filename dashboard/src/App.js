@@ -21,14 +21,17 @@ class App extends React.Component {
     }
 
     signIn = (mail, password) => {
-        axios.post('http://localhost:3001/api/auth/signin', { mail, password })
-        .then(res => { this.setState({token : res.data.token, userId: res.data.userId, loggedin: true}); })
+        axios.post('http://217.160.48.167/api/auth/signin', { mail, password })
+        .then(res => { 
+            //console.log(res)
+            this.setState({token : res.data.token, userId: res.data.userId, loggedin: true}); 
+        })
         .catch(error => console.log(error));
     }
 
     signUp = (mail, password) => {   
         axios.post(
-            'http://localhost:3001/api/auth/signup', 
+            'http://217.160.48.167/api/auth/signup', 
             { mail, password }, 
             { headers: { 'Authorization': this.state.token },
         })

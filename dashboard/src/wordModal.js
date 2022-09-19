@@ -125,7 +125,8 @@ class WordModal extends React.Component {
             },
             userId: this.props.userId
         }
-
+        
+        //console.log(save)
         return save;
     }
     
@@ -133,9 +134,9 @@ class WordModal extends React.Component {
         if(!this.isValid()) return; 
 
         const save = this.getData();
-        console.log(save.word, this.state.translated_definition)
+        //console.log(save.word, this.state.translated_definition)
         axios.post(
-            'http://localhost:3001/api/save/updateWord', 
+            'http://217.160.48.167/api/save/updateWord', 
             save, 
             { 
                 headers: { 'Authorization': this.props.token },
@@ -147,15 +148,14 @@ class WordModal extends React.Component {
 
     save = (next) =>{  
         if(this.isValid() === false) return; 
-
+        
         const save = this.getData();
         axios.post(
-            'http://localhost:3001/api/save/word/', 
+            'http://217.160.48.167/api/save/word/', 
             save, 
             { headers: { 'Authorization': this.props.token } },
         )
         .then( () => {
-            console.log(999)
 
             if(next)
                 this.props.reloadModal();

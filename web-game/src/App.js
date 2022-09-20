@@ -28,6 +28,7 @@ class App extends React.Component {
         this.data = null;
         this.showAnswers = this.showAnswers.bind(this);
         this.virtualGrid = {};
+        this.virtualGridWithDirections = {};
         
         const allSpecialCharacters = 'ÁÀÇÉÈÍÌÓÒÚÙùúòóìíèéçàá';
         this.specialCharacters = [];
@@ -41,17 +42,35 @@ class App extends React.Component {
        // this.clock = setInterval(() => this.setState({ date: moment().locale('oc-lnc').format('MMMM Do YYYY, h:mm:ss a') }), 1000);
     }
 
+    componentDidUpdate(){
+      // console.log("UPdate component");
+    }
 
     handleChange = (event) =>{
         const {name, value} = event.currentTarget;
         //  console.log(name, value)
         this.setState({ [name] : value });
-    }
-    
+    }    
 
-    componentDidUpdate(){
-       //console.log(this.state);
+    shuffleArray (array) {
+        let currentIndex = array.length,  randomIndex;
+
+        // While there remain elements to shuffle.
+        while (currentIndex != 0) {
+
+          // Pick a remaining element.
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
+
+          // And swap it with the current element.
+          [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]];
+        }
+
+        return array;
     }
+
+
 
     showAnswers(){
         this.crosswordRef.current.fillAllAnswers();
@@ -60,8 +79,11 @@ class App extends React.Component {
     setVirtualGrid = (gridDimensions) => {
         for (let horizontalIndex = 0; horizontalIndex < gridDimensions.x; horizontalIndex++) {
             this.virtualGrid[horizontalIndex] = {};
+            this.virtualGridWithDirections[horizontalIndex] = {};
+
             for (let verticalIndex = 0; verticalIndex < gridDimensions.y; verticalIndex++) {
                 this.virtualGrid[horizontalIndex][verticalIndex] = '#';      
+                this.virtualGridWithDirections[horizontalIndex][verticalIndex] = null;
             }
         }
       //  console.log('Génération grille virtuelle : ', this.virtualGrid)
@@ -73,59 +95,107 @@ class App extends React.Component {
         // this.virtualGrid[row][column], row = y, col = x
 
         for (let index = 0; index < word.length; index++) { // Boucle chaque lettre du nouevau mot
-            if(dir === 'across') // Horizontale
-            {              
+            if(dir === 'across'){ // Horizontale
                 this.virtualGrid[y][x + index] = word[index];
+                this.virtualGridWithDirections[y][x + index] = 'across';
             }
-            if(dir === "down") // Verticale
-            {
+            if(dir === "down"){ // Verticale
                 this.virtualGrid[y + index][x] = word[index];
+                this.virtualGridWithDirections[y + index][x] = 'down';
             }
         }
 
         // console.log(word, "ajouté,  grille virtuelle = ",this.virtualGrid);
     }
 
-
     isWordOverlappingToVirtualGrid = (startCol, startRow, dir, word, correspondingIndex, wordToCompare ) => {
         // this.virtualGris[row][column], row = y, col = x
         //   console.log("isWordOverlappingToVirtualGrid()", startCol,startRow , dir, word)
         let overlap = false;
+        let lateralLettersInSameDirection = 0;
 
-        for (let index = 0; index < word.length + 1; index++) { // Boucle chaque lettre du mot pour tester la position
+        for (let index = 0; index <= word.length + 2 ; index++) { // Boucle chaque lettre
+            // Boucle chaque lettre +la case après la dernière lettre de la possible position du mot pour tester si la case est vide
             let xPos = startCol, yPos = startRow;
-            
-            if(dir === "across") xPos = startCol + index; 
-            else yPos = startRow + index; 
 
+            if(dir === "across") xPos = startCol + index; // Get pos
+            else yPos = startRow + index;
+
+           // console.log(yPos, xPos)
             const testPosition = this.virtualGrid[yPos][xPos]; // Position à tester sur la grille
-            if(index === word.length + 1){  
-                if(testPosition !== "#") {  // Si la dernière case après la derniere lettre n'est pas vide (#), alors le mot est en conflit
-                   // console.log(testPosition)
+
+           // if(index !== word.length) console.log(word[index], testPosition)
+            if(index === word.length + 2){ // Si la dernière case après la dernière lettre n'est pas vide (#), alors le mot est en conflit
+               // console.log('test dernière case: ', word, ' ', testPosition);
+
+                if(testPosition !== "#") {
                     overlap = true;
-                }                
+                }
                 break;
             }
 
-            
-
             const letter = word.slice(index, index + 1);
-            let posToIgnore =  false;
-           // const isPositionEmpty = testPosition !== word[index] ? true : false;
-            
-            if(testPosition === "#") posToIgnore = true;
-            if(letter === testPosition) posToIgnore = true;
-            if(correspondingIndex === index) posToIgnore = true;            
-            //   console.log(posToIgnore, testPosition, letter, testPosition === "#", letter === testPosition)
+            if(letter !== testPosition && index !== 0 && index <= word.length ){ // Autoriser seulement les mots latérals qui vont dans le même sens si ils sont à une case d'écart
+                
+                if(dir === "across"){ // Horizontale
 
-            if(posToIgnore) continue;
+                    const upPosFromTestPos = this.virtualGrid[yPos + 1][xPos ];
+                    const downPosFromTestPos = this.virtualGrid[yPos - 1][xPos];
+                    if(upPosFromTestPos !== "#") {  
+                       
+                        if(this.virtualGridWithDirections[yPos + 1][xPos] === "down"){
+                           // console.log('Conflit latéral: ', word, ' ', testPosition);
+                            overlap = true;
+                            break;
+                        }else lateralLettersInSameDirection++;
+                    } 
+
+                    if(downPosFromTestPos !== "#") {  
+                        if(this.virtualGridWithDirections[yPos - 1][xPos] === "down"){
+                           // console.log('Conflit latéral: ', word, ' ', testPosition);
+                            overlap = true;
+                            break;
+                        }else lateralLettersInSameDirection++;
+                    } 
+                } 
+                else { // Vertical/Down
+                    const leftPosFromTestPos = this.virtualGrid[yPos][xPos - 1];    
+                    const rightPosFromTestPos = this.virtualGrid[yPos][xPos + 1];
+                    if(leftPosFromTestPos !== "#") {  
+                        if(this.virtualGridWithDirections[yPos][xPos - 1] === "across"){
+                           // console.log('Conflit latéral: ', word, ' ', testPosition);
+                            overlap = true;
+                            break;
+                        } else lateralLettersInSameDirection++;
+                    }
+
+                    if(rightPosFromTestPos !== "#") {  
+                        if(this.virtualGridWithDirections[yPos][xPos + 1] === "across"){
+                          //  console.log('Conflit latéral: ', word, ' ', testPosition);
+                            overlap = true;
+                            break;
+                        } else lateralLettersInSameDirection++;
+                    }
+                } 
+            }
+            
+            let posToIgnore =  false;
+            // const isPositionEmpty = testPosition !== word[index] ? true : false;
+            
+            if(testPosition === "#" || letter === testPosition || correspondingIndex === index) posToIgnore = true;            
+            //console.log(posToIgnore, testPosition, letter, testPosition === "#", letter === testPosition)
+            
+            if(posToIgnore){                
+                continue;
+            }
             if(!posToIgnore){
+                //console.log("chevauchement : ", word, '/', wordToCompare.answer, "lettre: ", letter, '/', testPosition);
                 overlap = true;
-                //   console.log("chevauchement : ", word, '/', wordToCompare.answer, "lettre: ", letter, '/', testPosition);
                 break;
             }
         }
-        //console.log(overlap)
+
+        if(lateralLettersInSameDirection > 3) overlap = true;
         return overlap;
     }
 
@@ -135,21 +205,46 @@ class App extends React.Component {
         // Résultat attendu pour les correspondances :
         // matches = {
         //     Bonjour: [
-        //         {'Excusez-moi': {'e':0, 's': 0 },
-        //         {'Escalader': {total: 1, correspondings: {'e':0, 's': 0 }}},
-        //     ]
+        //         {'Excusez-moi': {'e':0, 's': 0} },
+        //         {'Escalader': {'e':0, 's': 0 } },
+        //     ],
         // }
 
+
+        let fullWords = [
+            {answer: "Chaise", clue: "Permet de s'asseoir"},
+            {answer: "Arbre", clue: "Les oiseaux se posent dessus"},
+            {answer: "Avion", clue: "Traverse de grandes distances"},
+            {answer: "Télévision", clue: "Fenêtre sur le monde"},
+            {answer: "Montagne", clue: "Rocher de grande taille"},
+        ];
+
         words = [
+            "casserole",
+            "pluie",
+            "cheval",
+            "grenouille",
+            "MARCHER",
             "chaise",
             "PATATE",
-            "BOUTEILLE",
-            "ESCALADER",
-        "BONJOUR"  
+            "table",
+            "brocolis",
+            "rire",
+            "orange",
+            "vie",
+            "ventilateur",
+            "escalator",
+           // "ESCALADER",
+           // "BONJOUR",
+           // "BOUTEILLE",
+           // "feuille",
+            "VENT",
+            "soleil",    
+            "odeur",
         ];
         
         words = words.map(l => l.toUpperCase());
-        console.log(words)
+        //console.log(words)
 
         // --------------------------------------------------
         // ---------- Obtenir toutes les correspondances -------------
@@ -183,27 +278,28 @@ class App extends React.Component {
 
         });
 
-        console.log(matches);
+        console.log('Liste des correspondances', matches);
 
         // ------------------------------------------------------
         // ------------  Positionner les mots  ----------------------
         // -------------------------------------------------------
+       // console.log("%c" + " SET WORDS POSITIONS ", "color:" + "red" + " ;font-weight:bold;");
 
-
-        const gridDimensions = {x:50, y:50};
-        const firstWordPos = {x:5, y:7 };
+        const gridDimensions = {x:500, y:500};
+        const firstPosGlobal = 15;
+        const firstWordPos = { x:firstPosGlobal, y:firstPosGlobal };
         let direction = 0; // 0: horizontale/across (x), 1: verticale/down (y)
-        let crossWordsWords = [];
+        let crossWordsWords = []; // Data complète pour le composant ReactCrossword
+        let wordPosSuccess = 0;
 
         this.setVirtualGrid(gridDimensions);
 
 
-        /**
-        
-            Ordre 
-            1 . Tous les mots qui seront dans la grille
-            2 . Toutes les lettres correspondantes pour le mot itéré 
-        
+        /**        
+            Ordre des boucles
+            1. Tous les mots qui seront dans la grille
+            2. Tous les mots déjà présent sur la grille pour tester correspondances
+            3. Toutes les lettres correspondantes pour le mot itéré
         */
 
         for (let index = 0; index < words.length; index++) { // Boucler tous les mots pour établir les positions 
@@ -211,12 +307,12 @@ class App extends React.Component {
             // console.log(currentWord, previousWord);
 
             let newWord = {
-                clue: 'Devinette',
+                clue: 'Devinette' + Math.random(10000),
                 answer: currentWord,
-                direction: 'across'
+                direction: 'across' // Default position
             };
 
-            if(index === 0){
+            if(index === 0){ // Default placement for the first word
                 newWord.col = firstWordPos.x;
                 newWord.row = firstWordPos.y;
 
@@ -228,113 +324,90 @@ class App extends React.Component {
                     newWord.answer
                 );
             }
-            else
-            {
-                direction = !direction; // A chaque changement de mot on change l'orientation
+            else {
 
-                newWord.direction = direction ? 'down' : 'across';
-                let wordToCompareIndex = 0; // On commence avec le mot précédent
-                let wordToCompare = crossWordsWords[wordToCompareIndex].answer;
+                let tryAnotherWorld = true;
+                this.shuffleArray(crossWordsWords);
+                for(let wordToCompareIndex = 0; wordToCompareIndex <  crossWordsWords.length; wordToCompareIndex++){ // Loop each word on crossword grid until you find success
+                    let wordToCompare = crossWordsWords[wordToCompareIndex].answer;
+                    if(wordToCompare === currentWord || !tryAnotherWorld) continue;
 
-                let correspondings = matches[currentWord][wordToCompare]; // Lettres correspondantes entre les deux mots
-                let tryAnotherWord = false;
-                // console.log(correspondings);
+                    console.log('Mot actuel et mot comparé : ', currentWord, wordToCompare)
 
-                let isOverlapping = false;
-                let stop = false;
-                
-              //  console.log(correspondings, currentWord, wordToCompare) 
-
-                // Tester les collisions 
-
-                for (let i = 0; i < Object.keys(correspondings).length; i++) { 
-                    /*
-                        Boucle toutes les lettres correpondantes avec le mot à placer
-                        pour trouver une position sans collision
-                    */
-
-                    if(tryAnotherWord){
-                        tryAnotherWord = false;
-                        i = 0;  
-                        if(wordToCompareIndex === 0) { 
-                            console.log("aucun mot n'offre de possibilité de placement");
-                            break;
-                        }
-                        wordToCompareIndex--
-                        wordToCompare = crossWordsWords[wordToCompareIndex].answer;
-                        correspondings = matches[currentWord][wordToCompare];  
-                        continue;                       
-                    }
-
-                    if(!stop){
-
-                        const getCorrespondingLetter = [Object.keys(correspondings)[i]]; // Retourne  lettre correspondante                         
-                        // Maintenant qu'on a la lettre correspondante, calculer la position de cette lettre sur le
-                        // tableau, calculer le décalage pour établir la direction
-                        const currentWordCorrespondingIndex = currentWord.indexOf([getCorrespondingLetter]);
-                        let wordToCompareCorrespondingIndex;
-                     
-                        // Chaque lettre correspondante peut être présente plusieurs fois dans le mot, il faut donc réitérer
-                        for (let correspondingLetterIndex = 0; correspondingLetterIndex < Object.keys(correspondings)[i].length && !stop; correspondingLetterIndex++) {
-                            
-                            wordToCompareCorrespondingIndex = wordToCompare.indexOf([getCorrespondingLetter], correspondingLetterIndex);    
-                            
-                            // Placer le mot au même emplacement que celui que l'on compare puis le décaler pour le positionner sur la bonne lettre
-                            if(direction){
-                                newWord.row = crossWordsWords[wordToCompareIndex].row - currentWordCorrespondingIndex;
-                                newWord.col = crossWordsWords[wordToCompareIndex].col + wordToCompareCorrespondingIndex;
-                            }
-                            else
-                            {
-                               newWord.row = crossWordsWords[wordToCompareIndex].row + wordToCompareCorrespondingIndex;
-                               newWord.col = crossWordsWords[wordToCompareIndex].col - currentWordCorrespondingIndex;
-                            }          
-
-                            const wordToCompareData = {
-                                ...crossWordsWords[wordToCompareIndex], 
-                                correspondingIndex: wordToCompareCorrespondingIndex
-                            };
-
-                            // Si le mot percute un autre mot et que les deux lettres ne correspondent pas chercher une autre position 
-                            isOverlapping = this.isWordOverlappingToVirtualGrid(
-                                newWord.col, 
-                                newWord.row, 
-                                newWord.direction, 
-                                newWord.answer, 
-                                currentWordCorrespondingIndex,
-                                wordToCompareData, 
-                            );
-                            //  console.log(isOverlapping)
-
-                            if(!isOverlapping){
-                                stop = true;
-                                crossWordsWords.push(newWord);
-                                this.addWordToVirtualGrid(
-                                    newWord.col,
-                                    newWord.row,
-                                    newWord.direction,
-                                    newWord.answer
-                                );
-                            }
-                        }
-
+                    newWord.direction = crossWordsWords[wordToCompareIndex].direction === "across" ? "down" : "across"; // Sens inverse par rapport au mot comparé
+                    console.log(newWord.direction, crossWordsWords[wordToCompareIndex].direction)
+                    direction = newWord.direction === "across" ? 0 : 1;           
+                    
+                    let correspondings = matches[currentWord][wordToCompare]; // Lettres correspondantes entre les deux mots
+                   // console.log(crossWordsWords, correspondings)
+                    for (let i = 0; i < Object.keys(correspondings).length; i++) {  // Boucle toutes les lettres correpondantes entre currentWord et wordToCompare
                         
-                        //  console.log( correspondings,  getCorrespondingLetter,    "mot actuel : ", currentWord,     currentWordCorrespondingIndex,     "mot précédent : ", wordToCompare,    wordToCompareCorrespondingIndex );
-                        // console.log(crossWordsWords[wordToCompareIndex].row, currentWordCorrespondingIndex, crossWordsWords[wordToCompareIndex].col, wordToCompareCorrespondingIndex);
+                        if(tryAnotherWorld){
 
-                        if( (i === Object.keys(correspondings).length - 1)){
-                            // Toutes les possibilités entre les deux mot ont été épuisés / Dernière itération de la boucle
-                            i= 0; // Relancer la boucle
-                            tryAnotherWord = true; // Condition qui changera l'index du mot
-                        }               
+                            const getCorrespondingLetter = [Object.keys(correspondings)[i]]; // Retourne  lettre correspondante                         
+                            // Maintenant qu'on a la lettre correspondante, calculer la position de cette lettre sur le
+                            // tableau, calculer le décalage pour établir la direction
+                            const currentWordCorrespondingIndex = currentWord.indexOf([getCorrespondingLetter]);
+                            let wordToCompareCorrespondingIndex;
+                        
+                            // Chaque lettre correspondante peut être présente plusieurs fois dans le mot, il faut donc réitérer
+                            for (let correspondingLetterIndex = 0; correspondingLetterIndex < Object.keys(correspondings)[i].length && tryAnotherWorld; correspondingLetterIndex++) {
 
+                                wordToCompareCorrespondingIndex = wordToCompare.indexOf([getCorrespondingLetter], correspondingLetterIndex);    
+
+                                // Placer le mot au même emplacement que celui que l'on compare puis le décaler pour le positionner sur la bonne lettre
+                                if(direction){ // Across the way
+                                    newWord.row = crossWordsWords[wordToCompareIndex].row - currentWordCorrespondingIndex;
+                                    newWord.col = crossWordsWords[wordToCompareIndex].col + wordToCompareCorrespondingIndex;
+                                }
+                                else{ // Down the way
+                                   newWord.row = crossWordsWords[wordToCompareIndex].row + wordToCompareCorrespondingIndex;
+                                   newWord.col = crossWordsWords[wordToCompareIndex].col - currentWordCorrespondingIndex;
+                                }          
+
+                                // Tester position
+                                let isOverlapping = this.isWordOverlappingToVirtualGrid(
+                                    newWord.col, 
+                                    newWord.row, 
+                                    newWord.direction, 
+                                    newWord.answer, 
+                                    currentWordCorrespondingIndex,
+                                    { // wordToCompareData
+                                        ...crossWordsWords[wordToCompareIndex], 
+                                        correspondingIndex: wordToCompareCorrespondingIndex
+                                    }, 
+                                );
+                                console.log(isOverlapping)
+
+                                if(!isOverlapping){ // Success for the word position
+                                    console.log("WORD SUCCESS")
+                                    wordPosSuccess++;
+                                    tryAnotherWorld = false;
+                                    crossWordsWords.push(newWord);
+                                    this.addWordToVirtualGrid(
+                                        newWord.col,
+                                        newWord.row,
+                                        newWord.direction,
+                                        newWord.answer
+                                    );
+                                }
+                            }
+
+                            //   console.log( correspondings,  getCorrespondingLetter,    "mot actuel : ", currentWord,     currentWordCorrespondingIndex,     "mot précédent : ", wordToCompare,    wordToCompareCorrespondingIndex );
+                            // console.log(crossWordsWords[wordToCompareIndex].row, currentWordCorrespondingIndex, crossWordsWords[wordToCompareIndex].col, wordToCompareCorrespondingIndex);           
+
+                        }
                     }
+
+                    if(wordToCompareIndex === crossWordsWords.length - 1 && tryAnotherWorld) { 
+                        console.log("Aucun mot n'offre de possibilité de placement");
+                    }                    
                 }
             }
    
         }
 
-        //console.log("grille virtuelle = ", this.virtualGrid);
+        console.log( (1 + wordPosSuccess)  + 'mots dans la grille sur ' + words.length + " /n Grille virtuelle: ", {grille: this.virtualGrid});
 
         // --------------------------------------------------------------------
         // ----------------  Trier les mots en fonction de leur direction (pour React-Crossword) ------------------------
@@ -350,15 +423,30 @@ class App extends React.Component {
             }
         }
 
-       // const debugTabs = crossWordsWords.map(word => (
-       //     {name: word.answer, row: word.row, col: word.col }
-       // ))
+        let minXPos, minYpos;
+        let firstMinPosTest = true;
+        crossWordsWords.forEach(w => { // Calculer la position la plus courte avec les bords du cadres pour rapprocher les mots plus tard
+
+            if(firstMinPosTest){
+                minXPos = w.col;
+                minYpos = w.row;
+                firstMinPosTest = false;
+                return;
+            }
+
+            minXPos = w.col < minXPos ? w.col : minXPos;       
+            minYpos = w.row < minYpos ? w.row : minYpos;
+        });
+
+
+        // const debugTabs = crossWordsWords.map(word => (
+        //     {name: word.answer, row: word.row, col: word.col }
+        // ))
 
         //console.log("Positions des mots sur la grille : ", debugTabs);
 
 
-        // Ajout des mots dans l'état local pour que le composant Crossword puisse les lire
-
+        // Ajout des mots dans l'état local pour que le composant React-Crossword puisse les lire
         this.setState({
             data: {
                 across: {...across},
@@ -367,16 +455,12 @@ class App extends React.Component {
         });        
     }
 
-    generateNewGrid(){
-        this.generateGrid();
-    }
-
     isCrosswordCorrect(){
         return this.crosswordRef.current.isCrosswordCorrect();
     }
 
     crosswordIsCorrect(){
-        console.log("Mot-croisé complété !")
+        //console.log("Mot-croisé complété !")
     }
 
     resetCrossword(){
@@ -384,21 +468,20 @@ class App extends React.Component {
     }
 
     addSpecialCharacterToCase (character) {
-
     }
 
     wordCorrect(){console.log('Mot correct')}
 
-
     render() {        
+        const buttonHeight=50;
         return (
-            <div className="App" style={{ display: 'flex' }} >
+            <div className="App" >
                 <Row>
                     <Row className='w-100'>
-                        <Col>
+                        <Col  style={{ display: 'flex'}}>
                             <Crossword 
                                 ref={this.crosswordRef} 
-                                columnBreakpoint={'3vh'} 
+                                columnBreakpoint={'22vh'} 
                                 data={this.state.data}
                                 acrossLabel="Ourizountal" 
                                 downLabel="Vertical"
@@ -406,20 +489,22 @@ class App extends React.Component {
                                 onCrosswordCorrect={this.crosswordIsCorrect.bind(this)} 
                                 className='m-auto'
                                 key={(key) => console.log(key)}
-                                style={{height:'1800px', width: '2800px'}} />
+                                style={{height:'1000px', width: '1000px'}} />
                         </Col>
                     </Row>
 
-                    <Row>
-                        <Col>
-                            <Button style={{height:'200px', width: '200px'}} onClick={this.showAnswers} >Révéler solution</Button>
-                            <Button style={{height:'200px', width: '200px'}} onClick={this.resetCrossword.bind(this)}>Réinitialiser</Button>
+                    <Row className='mx-auto'>
+                        <Col className='mx-auto'>
+                            <Button style={{height: buttonHeight, width: buttonHeight*3}} onClick={this.showAnswers} >Révéler solution</Button>
+                            <Button style={{height: buttonHeight, width: buttonHeight*2}} onClick={this.resetCrossword.bind(this)}>Réinitialiser</Button>
                         </Col>
+                        {/** 
                         <Col className='mx-auto'>
                             {this.specialCharacters.map(c => 
                                 <Button onClick={this.addSpecialCharacterToCase.bind(this, c)}>{c}</Button>    
                             )}
                         </Col>
+                        */}
                     </Row>
            
                 </Row>

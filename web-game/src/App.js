@@ -52,11 +52,11 @@ class App extends React.Component {
         this.setState({ [name] : value });
     }    
 
-    shuffleArray (array) {
+    shuffleArray (array) { // Random array order
         let currentIndex = array.length,  randomIndex;
 
         // While there remain elements to shuffle.
-        while (currentIndex != 0) {
+        while (currentIndex !== 0) {
 
           // Pick a remaining element.
           randomIndex = Math.floor(Math.random() * currentIndex);
@@ -70,13 +70,11 @@ class App extends React.Component {
         return array;
     }
 
-
-
     showAnswers(){
         this.crosswordRef.current.fillAllAnswers();
     }
 
-    setVirtualGrid = (gridDimensions) => {
+    setVirtualGrid = (gridDimensions) => { // Virtual grid to test position
         for (let horizontalIndex = 0; horizontalIndex < gridDimensions.x; horizontalIndex++) {
             this.virtualGrid[horizontalIndex] = {};
             this.virtualGridWithDirections[horizontalIndex] = {};
@@ -242,6 +240,11 @@ class App extends React.Component {
             "soleil",    
             "odeur",
         ];
+
+        words = [];
+        fullWords.forEach(w => {
+            words.push(w.answer);
+        });
         
         words = words.map(l => l.toUpperCase());
         //console.log(words)
@@ -315,7 +318,7 @@ class App extends React.Component {
             if(index === 0){ // Default placement for the first word
                 newWord.col = firstWordPos.x;
                 newWord.row = firstWordPos.y;
-
+                newWord.clue = fullWords.find(w =>  w.answer.toUpperCase() === currentWord).clue;
                 crossWordsWords.push(newWord);
                 this.addWordToVirtualGrid(
                     newWord.col, 
@@ -383,6 +386,7 @@ class App extends React.Component {
                                     console.log("WORD SUCCESS")
                                     wordPosSuccess++;
                                     tryAnotherWorld = false;
+                                    newWord.clue = fullWords.find(w =>  w.answer.toUpperCase() === currentWord).clue;
                                     crossWordsWords.push(newWord);
                                     this.addWordToVirtualGrid(
                                         newWord.col,
@@ -437,13 +441,6 @@ class App extends React.Component {
             minXPos = w.col < minXPos ? w.col : minXPos;       
             minYpos = w.row < minYpos ? w.row : minYpos;
         });
-
-
-        // const debugTabs = crossWordsWords.map(word => (
-        //     {name: word.answer, row: word.row, col: word.col }
-        // ))
-
-        //console.log("Positions des mots sur la grille : ", debugTabs);
 
 
         // Ajout des mots dans l'état local pour que le composant React-Crossword puisse les lire

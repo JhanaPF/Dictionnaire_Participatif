@@ -252,12 +252,11 @@ class App extends React.Component {
         ];
 
         words = [];
-        fullWords.forEach(w => {
+        fullWords.forEach(w => { // Delete clues
             words.push(w.answer);
         });
         
         words = words.map(l => l.toUpperCase()); // Mettre tous les mots en majuscule
-        //console.log(words)
 
         // --------------------------------------------------
         // ---------- Obtenir toutes les correspondances -------------
@@ -305,7 +304,7 @@ class App extends React.Component {
         let crossWordsWords = []; // Data complète pour le composant ReactCrossword
         let wordPosSuccess = 0;
 
-        this.setVirtualGrid(gridDimensions);
+        this.setVirtualGrid(gridDimensions); // Virtual grid to test positions
 
 
         /**        
@@ -315,7 +314,27 @@ class App extends React.Component {
             3. Toutes les lettres correspondantes pour le mot itéré
         */
 
-        for (let index = 0; index < words.length; index++) { // Boucler tous les mots pour établir les positions 
+       
+       // Default placement for the first word
+        let firstWord = {
+            answer: words[0],
+            direction: 'across', // Default position
+            col : firstWordPos.x,
+            row : firstWordPos.y,
+            clue : fullWords.find(w =>  w.answer.toUpperCase() === words[0]).clue
+        };
+
+        crossWordsWords.push(firstWord);
+        this.addWordToVirtualGrid(
+            firstWord.col, 
+            firstWord.row, 
+            firstWord.direction, 
+            firstWord.answer
+        );
+        // ---
+
+
+        for (let index = 1; index < words.length; index++) { // Boucler tous les mots pour établir les positions 
             const currentWord = words[index];
             // console.log(currentWord, previousWord);
 
@@ -325,97 +344,82 @@ class App extends React.Component {
                 direction: 'across' // Default position
             };
 
-            if(index === 0){ // Default placement for the first word
-                newWord.col = firstWordPos.x;
-                newWord.row = firstWordPos.y;
-                newWord.clue = fullWords.find(w =>  w.answer.toUpperCase() === currentWord).clue;
-                crossWordsWords.push(newWord);
-                this.addWordToVirtualGrid(
-                    newWord.col, 
-                    newWord.row, 
-                    newWord.direction, 
-                    newWord.answer
-                );
-            }
-            else {
-
-                let tryAnotherWorld = true;
-                this.shuffleArray(crossWordsWords);
-                for(let wordToCompareIndex = 0; wordToCompareIndex <  crossWordsWords.length; wordToCompareIndex++){ // Loop each word on crossword grid until you find success
-                    let wordToCompare = crossWordsWords[wordToCompareIndex].answer;
-                    if(wordToCompare === currentWord || !tryAnotherWorld) continue;
-
-                    //console.log('Mot actuel et mot comparé : ', currentWord, wordToCompare)
-
-                    newWord.direction = crossWordsWords[wordToCompareIndex].direction === "across" ? "down" : "across"; // Sens inverse par rapport au mot comparé
-                    //console.log(newWord.direction, crossWordsWords[wordToCompareIndex].direction)
-                    direction = newWord.direction === "across" ? 0 : 1;           
+            let tryAnotherWorld = true;
+            this.shuffleArray(crossWordsWords);
+            for(let wordToCompareIndex = 0; wordToCompareIndex <  crossWordsWords.length; wordToCompareIndex++){ // Loop each word on crossword grid until you find success
+                let wordToCompare = crossWordsWords[wordToCompareIndex].answer;
+                if(wordToCompare === currentWord || !tryAnotherWorld) continue;
+            
+                //console.log('Mot actuel et mot comparé : ', currentWord, wordToCompare)
+            
+                newWord.direction = crossWordsWords[wordToCompareIndex].direction === "across" ? "down" : "across"; // Sens inverse par rapport au mot comparé
+                //console.log(newWord.direction, crossWordsWords[wordToCompareIndex].direction)
+                direction = newWord.direction === "across" ? 0 : 1;           
+                
+                let correspondings = matches[currentWord][wordToCompare]; // Lettres correspondantes entre les deux mots
+               // console.log(crossWordsWords, correspondings)
+                for (let i = 0; i < Object.keys(correspondings).length; i++) {  // Boucle toutes les lettres correpondantes entre currentWord et wordToCompare
                     
-                    let correspondings = matches[currentWord][wordToCompare]; // Lettres correspondantes entre les deux mots
-                   // console.log(crossWordsWords, correspondings)
-                    for (let i = 0; i < Object.keys(correspondings).length; i++) {  // Boucle toutes les lettres correpondantes entre currentWord et wordToCompare
+                    if(tryAnotherWorld){
+                    
+                        const getCorrespondingLetter = [Object.keys(correspondings)[i]]; // Retourne  lettre correspondante                         
+                        // Maintenant qu'on a la lettre correspondante, calculer la position de cette lettre sur le
+                        // tableau, calculer le décalage pour établir la direction
+                        const currentWordCorrespondingIndex = currentWord.indexOf([getCorrespondingLetter]);
+                        let wordToCompareCorrespondingIndex;
+                    
+                        // Chaque lettre correspondante peut être présente plusieurs fois dans le mot, il faut donc réitérer
+                        for (let correspondingLetterIndex = 0; correspondingLetterIndex < Object.keys(correspondings)[i].length && tryAnotherWorld; correspondingLetterIndex++) {
                         
-                        if(tryAnotherWorld){
-
-                            const getCorrespondingLetter = [Object.keys(correspondings)[i]]; // Retourne  lettre correspondante                         
-                            // Maintenant qu'on a la lettre correspondante, calculer la position de cette lettre sur le
-                            // tableau, calculer le décalage pour établir la direction
-                            const currentWordCorrespondingIndex = currentWord.indexOf([getCorrespondingLetter]);
-                            let wordToCompareCorrespondingIndex;
+                            wordToCompareCorrespondingIndex = wordToCompare.indexOf([getCorrespondingLetter], correspondingLetterIndex);    
                         
-                            // Chaque lettre correspondante peut être présente plusieurs fois dans le mot, il faut donc réitérer
-                            for (let correspondingLetterIndex = 0; correspondingLetterIndex < Object.keys(correspondings)[i].length && tryAnotherWorld; correspondingLetterIndex++) {
-
-                                wordToCompareCorrespondingIndex = wordToCompare.indexOf([getCorrespondingLetter], correspondingLetterIndex);    
-
-                                // Placer le mot au même emplacement que celui que l'on compare puis le décaler pour le positionner sur la bonne lettre
-                                if(direction){ // Across the way
-                                    newWord.row = crossWordsWords[wordToCompareIndex].row - currentWordCorrespondingIndex;
-                                    newWord.col = crossWordsWords[wordToCompareIndex].col + wordToCompareCorrespondingIndex;
-                                }
-                                else{ // Down the way
-                                   newWord.row = crossWordsWords[wordToCompareIndex].row + wordToCompareCorrespondingIndex;
-                                   newWord.col = crossWordsWords[wordToCompareIndex].col - currentWordCorrespondingIndex;
-                                }          
-
-                                // Tester position
-                                let isOverlapping = this.isWordOverlappingToVirtualGrid(
-                                    newWord.col, 
-                                    newWord.row, 
-                                    newWord.direction, 
-                                    newWord.answer, 
-                                    currentWordCorrespondingIndex,
-                                    { // wordToCompareData
-                                        ...crossWordsWords[wordToCompareIndex], 
-                                        correspondingIndex: wordToCompareCorrespondingIndex
-                                    }, 
-                                );
-
-                                if(!isOverlapping){ // Success for the word position
-                                    //console.log("WORD SUCCESS")
-                                    wordPosSuccess++;
-                                    tryAnotherWorld = false;
-                                    newWord.clue = fullWords.find(w =>  w.answer.toUpperCase() === currentWord).clue;
-                                    crossWordsWords.push(newWord);
-                                    this.addWordToVirtualGrid(
-                                        newWord.col,
-                                        newWord.row,
-                                        newWord.direction,
-                                        newWord.answer
-                                    );
-                                }
+                            // Placer le mot au même emplacement que celui que l'on compare puis le décaler pour le positionner sur la bonne lettre
+                            if(direction){ // Across the way
+                                newWord.row = crossWordsWords[wordToCompareIndex].row - currentWordCorrespondingIndex;
+                                newWord.col = crossWordsWords[wordToCompareIndex].col + wordToCompareCorrespondingIndex;
                             }
-
-                            //   console.log( correspondings,  getCorrespondingLetter,    "mot actuel : ", currentWord,     currentWordCorrespondingIndex,     "mot précédent : ", wordToCompare,    wordToCompareCorrespondingIndex );
-                            // console.log(crossWordsWords[wordToCompareIndex].row, currentWordCorrespondingIndex, crossWordsWords[wordToCompareIndex].col, wordToCompareCorrespondingIndex);           
-
+                            else{ // Down the way
+                               newWord.row = crossWordsWords[wordToCompareIndex].row + wordToCompareCorrespondingIndex;
+                               newWord.col = crossWordsWords[wordToCompareIndex].col - currentWordCorrespondingIndex;
+                            }          
+                        
+                            // Tester position
+                            let isOverlapping = this.isWordOverlappingToVirtualGrid(
+                                newWord.col, 
+                                newWord.row, 
+                                newWord.direction, 
+                                newWord.answer, 
+                                currentWordCorrespondingIndex,
+                                { // wordToCompareData
+                                    ...crossWordsWords[wordToCompareIndex], 
+                                    correspondingIndex: wordToCompareCorrespondingIndex
+                                }, 
+                            );
+                            
+                            if(!isOverlapping){ // Success for the word position
+                                //console.log("WORD SUCCESS")
+                                wordPosSuccess++;
+                                tryAnotherWorld = false;
+                                newWord.clue = fullWords.find(w =>  w.answer.toUpperCase() === currentWord).clue;
+                                crossWordsWords.push(newWord);
+                                this.addWordToVirtualGrid(
+                                    newWord.col,
+                                    newWord.row,
+                                    newWord.direction,
+                                    newWord.answer
+                                );
+                            }
                         }
+                    
+                        //   console.log( correspondings,  getCorrespondingLetter,    "mot actuel : ", currentWord,     currentWordCorrespondingIndex,     "mot précédent : ", wordToCompare,    wordToCompareCorrespondingIndex );
+                        // console.log(crossWordsWords[wordToCompareIndex].row, currentWordCorrespondingIndex, crossWordsWords[wordToCompareIndex].col, wordToCompareCorrespondingIndex);           
+                    
                     }
-
-                    if(wordToCompareIndex === crossWordsWords.length - 1 && tryAnotherWorld) { 
-                        //console.log("Aucun mot n'offre de possibilité de placement");
-                    }                    
                 }
+            
+                if(wordToCompareIndex === crossWordsWords.length - 1 && tryAnotherWorld) { 
+                    //console.log("Aucun mot n'offre de possibilité de placement");
+                }                    
             }
    
         }

@@ -227,32 +227,8 @@ class App extends React.Component {
 
         ];
 
-        let words = [
-            "casserole",
-            "pluie",
-            "cheval",
-            "grenouille",
-            "MARCHER",
-            "chaise",
-            "PATATE",
-            "table",
-            "brocolis",
-            "rire",
-            "orange",
-            "vie",
-            "ventilateur",
-            "escalator",
-           // "ESCALADER",
-           // "BONJOUR",
-           // "BOUTEILLE",
-           // "feuille",
-            "VENT",
-            "soleil",    
-            "odeur",
-        ];
-
-        words = [];
-        fullWords.forEach(w => { // Delete clues
+        let words = [];
+        fullWords.forEach(w => { // Delete clues for grid algorithme 
             words.push(w.answer);
         });
         
@@ -297,12 +273,11 @@ class App extends React.Component {
         // -------------------------------------------------------
        // console.log("%c" + " SET WORDS POSITIONS ", "color:" + "red" + " ;font-weight:bold;");
 
-        const gridDimensions = {x:500, y:500};
-        const firstPosGlobal = 15;
-        const firstWordPos = { x:firstPosGlobal, y:firstPosGlobal };
+        const gridDimensions = {x: 500, y: 500};
+        const firstPosGlobal = 20;
+        const firstWordPos = { x: firstPosGlobal, y: firstPosGlobal };
         let direction = 0; // 0: horizontale/across (x), 1: verticale/down (y)
         let crossWordsWords = []; // Data complète pour le composant ReactCrossword
-        let wordPosSuccess = 0;
 
         this.setVirtualGrid(gridDimensions); // Virtual grid to test positions
 
@@ -398,7 +373,6 @@ class App extends React.Component {
                             
                             if(!isOverlapping){ // Success for the word position
                                 //console.log("WORD SUCCESS")
-                                wordPosSuccess++;
                                 tryAnotherWorld = false;
                                 newWord.clue = fullWords.find(w =>  w.answer.toUpperCase() === currentWord).clue;
                                 crossWordsWords.push(newWord);
@@ -424,26 +398,15 @@ class App extends React.Component {
    
         }
 
-        //console.log( (1 + wordPosSuccess)  + 'mots dans la grille sur ' + words.length + " /n Grille virtuelle: ", {grille: this.virtualGrid});
+        //console.log(  'mots dans la grille sur ' + words.length + " /n Grille virtuelle: ", {grille: this.virtualGrid});
 
         // --------------------------------------------------------------------
-        // ----------------  Trier les mots en fonction de leur direction (pour React-Crossword) ------------------------
+        // ----------------  Trier les mots en fonction de leur direction et rapprocher les mots du bord (pour React-Crossword) ------------------------
         // --------------------------------------------------------------------
-
-        let across = {}, down = {};
-        for (let index = 0; index < crossWordsWords.length; index++) {
-            if(crossWordsWords[index].direction === 'across'){
-                across[index] = crossWordsWords[index];
-            }
-            if(crossWordsWords[index].direction === 'down'){
-                down[index] = crossWordsWords[index];  
-            }
-        }
 
         let minXPos, minYpos;
         let firstMinPosTest = true;
         crossWordsWords.forEach(w => { // Calculer la position la plus courte avec les bords du cadres pour rapprocher les mots plus tard
-
             if(firstMinPosTest){
                 minXPos = w.col;
                 minYpos = w.row;
@@ -455,14 +418,31 @@ class App extends React.Component {
             minYpos = w.row < minYpos ? w.row : minYpos;
         });
 
+        crossWordsWords.forEach(w => { // Rapprocher les mots du bord
+            w.col -= minXPos;
+            w.col++;
+            w.row -= minYpos;
+            w.row++;
+        });
+
+        let across = {}, down = {};
+        for (let index = 0; index < crossWordsWords.length; index++) {
+            if(crossWordsWords[index].direction === 'across'){
+                across[index] = crossWordsWords[index];
+            }
+            if(crossWordsWords[index].direction === 'down'){
+                down[index] = crossWordsWords[index];  
+            }
+        }
 
         // Ajout des mots dans l'état local pour que le composant React-Crossword puisse les lire
         this.setState({
             data: {
                 across: {...across},
                 down: {...down}
-            }
-        });        
+            },
+        }); 
+        
     }
 
     isCrosswordCorrect(){

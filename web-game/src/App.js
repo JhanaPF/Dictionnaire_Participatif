@@ -197,7 +197,10 @@ class App extends React.Component {
         return overlap;
     }
 
-    generateGrid (words) {
+    generateGrid () {
+
+        this.crosswordRef.current.reset();
+
         // Structure objet des correpondances
 
         // Résultat attendu pour les correspondances :
@@ -210,14 +213,21 @@ class App extends React.Component {
 
 
         let fullWords = [
-            {answer: "Chaise", clue: "Permet de s'asseoir"},
-            {answer: "Arbre", clue: "Les oiseaux se posent dessus"},
-            {answer: "Avion", clue: "Traverse de grandes distances"},
-            {answer: "Télévision", clue: "Fenêtre sur le monde"},
-            {answer: "Montagne", clue: "Rocher de grande taille"},
+           // {answer: "Chaise", clue: "Permet de s'asseoir"},
+           // {answer: "Arbre", clue: "Les oiseaux se posent dessus"},
+           // {answer: "Avion", clue: "Traverse de grandes distances"},
+           // {answer: "Télévision", clue: "Fenêtre sur le monde"},
+           // {answer: "Montagne", clue: "Rocher de grande taille"},
+
+            {answer: "Pluèia", clue: "Ça mouille"},
+            {answer: "Gelada", clue: "C'est froid"},
+            {answer: "Frucha", clue: "Se cueille aux branches"},
+            {answer: "Trìfoula", clue: "Les chiens les déterrent"},
+            {answer: "Bèca-flour", clue: "Oiseau qui vole en arrière"},
+
         ];
 
-        words = [
+        let words = [
             "casserole",
             "pluie",
             "cheval",
@@ -246,7 +256,7 @@ class App extends React.Component {
             words.push(w.answer);
         });
         
-        words = words.map(l => l.toUpperCase());
+        words = words.map(l => l.toUpperCase()); // Mettre tous les mots en majuscule
         //console.log(words)
 
         // --------------------------------------------------
@@ -281,7 +291,7 @@ class App extends React.Component {
 
         });
 
-        console.log('Liste des correspondances', matches);
+       // console.log('Liste des correspondances', matches);
 
         // ------------------------------------------------------
         // ------------  Positionner les mots  ----------------------
@@ -335,10 +345,10 @@ class App extends React.Component {
                     let wordToCompare = crossWordsWords[wordToCompareIndex].answer;
                     if(wordToCompare === currentWord || !tryAnotherWorld) continue;
 
-                    console.log('Mot actuel et mot comparé : ', currentWord, wordToCompare)
+                    //console.log('Mot actuel et mot comparé : ', currentWord, wordToCompare)
 
                     newWord.direction = crossWordsWords[wordToCompareIndex].direction === "across" ? "down" : "across"; // Sens inverse par rapport au mot comparé
-                    console.log(newWord.direction, crossWordsWords[wordToCompareIndex].direction)
+                    //console.log(newWord.direction, crossWordsWords[wordToCompareIndex].direction)
                     direction = newWord.direction === "across" ? 0 : 1;           
                     
                     let correspondings = matches[currentWord][wordToCompare]; // Lettres correspondantes entre les deux mots
@@ -380,10 +390,9 @@ class App extends React.Component {
                                         correspondingIndex: wordToCompareCorrespondingIndex
                                     }, 
                                 );
-                                console.log(isOverlapping)
 
                                 if(!isOverlapping){ // Success for the word position
-                                    console.log("WORD SUCCESS")
+                                    //console.log("WORD SUCCESS")
                                     wordPosSuccess++;
                                     tryAnotherWorld = false;
                                     newWord.clue = fullWords.find(w =>  w.answer.toUpperCase() === currentWord).clue;
@@ -404,14 +413,14 @@ class App extends React.Component {
                     }
 
                     if(wordToCompareIndex === crossWordsWords.length - 1 && tryAnotherWorld) { 
-                        console.log("Aucun mot n'offre de possibilité de placement");
+                        //console.log("Aucun mot n'offre de possibilité de placement");
                     }                    
                 }
             }
    
         }
 
-        console.log( (1 + wordPosSuccess)  + 'mots dans la grille sur ' + words.length + " /n Grille virtuelle: ", {grille: this.virtualGrid});
+        //console.log( (1 + wordPosSuccess)  + 'mots dans la grille sur ' + words.length + " /n Grille virtuelle: ", {grille: this.virtualGrid});
 
         // --------------------------------------------------------------------
         // ----------------  Trier les mots en fonction de leur direction (pour React-Crossword) ------------------------
@@ -460,7 +469,7 @@ class App extends React.Component {
         //console.log("Mot-croisé complété !")
     }
 
-    resetCrossword(){
+    hideCrossword(){
         this.crosswordRef.current.reset();
     }
 
@@ -485,17 +494,18 @@ class App extends React.Component {
                                 onCorrect={this.wordCorrect.bind(this)}
                                 onCrosswordCorrect={this.crosswordIsCorrect.bind(this)} 
                                 className='m-auto'
-                                key={(key) => console.log(key)}
+                               // key={(key) => console.log(key)}
                                 style={{height:'1000px', width: '1000px'}} />
                         </Col>
                     </Row>
 
                     <Row className='mx-auto'>
                         <Col className='mx-auto'>
-                            <Button style={{height: buttonHeight, width: buttonHeight*3}} onClick={this.showAnswers} >Révéler solution</Button>
-                            <Button style={{height: buttonHeight, width: buttonHeight*2}} onClick={this.resetCrossword.bind(this)}>Réinitialiser</Button>
+                            <Button style={{height: buttonHeight, width: buttonHeight * 3}} onClick={this.showAnswers} >Solution</Button>
+                            <Button style={{height: buttonHeight, width: buttonHeight * 4}} onClick={this.hideCrossword.bind(this)}>Cacher les mots</Button>
+                            <Button style={{height: buttonHeight, width: buttonHeight * 4}} onClick={this.generateGrid.bind(this)}>Générer une nouvelle grille</Button>
                         </Col>
-                        {/** 
+                        {/**  Créer un bouton pour chaque caractère spécial
                         <Col className='mx-auto'>
                             {this.specialCharacters.map(c => 
                                 <Button onClick={this.addSpecialCharacterToCase.bind(this, c)}>{c}</Button>    

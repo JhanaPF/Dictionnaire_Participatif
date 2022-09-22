@@ -1,5 +1,5 @@
 import './App.css';
-import moment from 'moment';
+//import moment from 'moment';
 import 'moment/locale/oc-lnc';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import React from 'react';
@@ -135,6 +135,10 @@ class Dashboard extends React.Component {
         this.selectWord(e.value) 
     }
 
+    openCrossWord () {
+        window.open('http://217.160.48.167/crossword/')
+    }
+
     render() {
         return (
             <div className="App">
@@ -221,9 +225,9 @@ class Dashboard extends React.Component {
                         </Col> 
 
                         <Col className='text-right'>
-                            <Button disabled className='text-right mt-1'>
-                                Jeu de mots croisés 
-                            </Button>          
+                            <Button className='text-right' onClick={this.openCrossWord.bind(this)}>
+                                Jeu de mots-croisés
+                            </Button> 
                         </Col> 
                     </Col>
 

@@ -1,9 +1,7 @@
 const Joi = require('joi');
 
 const wordValidation = Joi.object({
-    word: Joi.string()
-        .max(100)
-        .required(),
+    word: Joi.string().max(100).required(),
     class: Joi.number().optional().allow(null),
     definition: Joi.string().optional().allow(null),
     translated_definition: Joi.string().optional().allow(null),

@@ -189,6 +189,7 @@ class WordModal extends React.Component {
                             </Label>
                             <Select
                                 id="class"
+                                data-testid="class" 
                                 name="class"
                                 value={this.state.class}
                                 onChange={this.handleSelectChange.bind(this, 'class')} 
@@ -204,6 +205,7 @@ class WordModal extends React.Component {
                             </Label>                  
                             <Input
                                 id="translated_definition"
+                                data-testid="translated_definition" 
                                 name="translated_definition"
                                 value={this.state.translated_definition}
                                 onChange={this.handleChange}  
@@ -217,6 +219,7 @@ class WordModal extends React.Component {
                             </Label>                  
                             <Input
                                 id="definition"
+                                data-testid="definition" 
                                 name="definition"
                                 value={this.state.definition}
                                 onChange={this.handleChange}
@@ -230,6 +233,7 @@ class WordModal extends React.Component {
                             </Label>
                             <Input
                                 id="riddle"
+                                data-testid="riddle" 
                                 name="riddle"
                                 value={this.state.riddle}
                                 onChange={this.handleChange}   
@@ -242,6 +246,7 @@ class WordModal extends React.Component {
                             </Label>
                             <Input
                                 id="translated_riddle"
+                                data-testid="translated_riddle" 
                                 name="translated_riddle"
                                 value={this.state.translated_riddle}
                                 onChange={this.handleChange}
@@ -253,7 +258,8 @@ class WordModal extends React.Component {
                                 Anecdote(s):
                             </Label>                        
                             <Input
-                                id={"story"}
+                                id="story"
+                                data-testid="story" 
                                 name="story"
                                 value={this.state.story}
                                 onChange={this.handleChange}
@@ -266,6 +272,7 @@ class WordModal extends React.Component {
                             </Label>                  
                             <Input
                                 id="sentence"
+                                data-testid="sentence" 
                                 name="sentence"
                                 value={this.state.sentence}
                                 onChange={this.handleChange}                                
@@ -276,12 +283,13 @@ class WordModal extends React.Component {
                                 Niveau de langage:
                             </Label>                  
                             <Input
-                              id="level"
-                              name="level"
-                              type="select" 
-                              value={this.state.level}
-                              onChange={this.handleChange} 
-                              className="ml-1"
+                                id="level"
+                                data-testid="level" 
+                                name="level"
+                                type="select" 
+                                value={this.state.level}
+                                onChange={this.handleChange} 
+                                className="ml-1"
                             >                                   
                                 <option value={1}>
                                   1 
@@ -300,6 +308,7 @@ class WordModal extends React.Component {
                             </Label>      
                             <Select 
                                 id="categories"
+                                data-testid="categories" 
                                 name="categories"
                                 isMulti
                                 value={this.state.categories}
@@ -313,6 +322,7 @@ class WordModal extends React.Component {
                             </Label>                  
                             <Select 
                                 id="source"
+                                data-testid="source" 
                                 name="source"
                                 value={this.state.source}
                                 onChange={this.handleSelectChange.bind(this, 'source')} 

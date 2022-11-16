@@ -60,6 +60,14 @@ class WordModal extends React.Component {
         }
         else {
             this.state = {
+                word: '',
+                definition: '',
+                translated_definition: '',
+                sentence: '',
+                riddle: '',
+                translated_riddle: '',
+                story: '',
+                sentence: '',
                 level: '1', 
                 source: 0
             };

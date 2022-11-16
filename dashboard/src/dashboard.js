@@ -144,9 +144,7 @@ class Dashboard extends React.Component {
             <div className="App">
                 {this.state.date}
 
-                <img class=""
-                    src={blasonNice}
-                    alt="Armoiries de Nice"></img>
+                <img src={blasonNice} alt="Armoiries de Nice"/>
 
                 <Row md='6' className='m-auto mt-4 mx-5'>
                     <Col md='6'>

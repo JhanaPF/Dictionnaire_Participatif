@@ -17,7 +17,6 @@ class WordModal extends React.Component {
         this.sourceOptions = Sources.values();
         this.classOptions = Classes.values();
 
-        //if(this.props.editModal) console.log(this.props.wordData);
        
         if(this.props.editModal){
 
@@ -74,14 +73,6 @@ class WordModal extends React.Component {
         this.type = this.props.addModal ? 'addModal' : 'editModal';
     }
 
-    componentDidMount(){
-        //console.log(999)
-    }
-
-    componentDidUpdate(){
-        //console.log(this.state)
-    }
-
     handleChange = (event) =>{
         const {name, value} = event.currentTarget;
 
@@ -134,13 +125,10 @@ class WordModal extends React.Component {
         if(!this.isValid()) return; 
 
         const save = this.getData();
-        //console.log(save.word, this.state.translated_definition)
         axios.post(
             'http://217.160.48.167/api/save/updateWord', 
             save, 
-            { 
-                headers: { 'Authorization': this.props.token },
-            }
+            { headers: { 'Authorization': this.props.token }  }
         )
         .then( () => {  this.props.swapModal();  })
         .catch(function (error) {console.log(error);});     
@@ -165,7 +153,6 @@ class WordModal extends React.Component {
         .catch(function (error) {
             console.log(error);
         });
-
     }
 
     render() {
@@ -181,7 +168,7 @@ class WordModal extends React.Component {
                     
                         </Col>
                         <Col className='text-right ml-auto'>
-                            <button onClick={this.props.swapModal.bind(this, this.type)} type="button" className="btn btn-outline-secondary text-right ml-auto">X</button>
+                            <button onClick={this.props.swapModal && this.props.swapModal.bind(this, this.type)} type="button" className="btn btn-outline-secondary text-right ml-auto">X</button>
                         </Col>                        
                     </Row>
                         <FormGroup className='mx-2'>
@@ -190,7 +177,8 @@ class WordModal extends React.Component {
                             </Label>
                             <Input
                                 id="word"
-                                name="word"
+                                data-testid="word" 
+                                name="word" 
                                 value={this.state.word}
                                 onChange={this.handleChange}
                                 required
@@ -335,7 +323,7 @@ class WordModal extends React.Component {
                     <Col className='text-right mt-4'>
                         {this.props.addModal &&
                             <>
-                                <Button onClick={this.props.swapModal.bind(this, this.type)}>
+                                <Button onClick={this.props.swapModal && this.props.swapModal.bind(this, this.type)}>
                                     Quitter
                                 </Button>
                                 {' '}

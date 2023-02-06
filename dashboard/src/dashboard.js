@@ -35,7 +35,8 @@ class Dashboard extends React.Component {
             showNativeDefinition: false,
             showTranslatedWord: true,
         }
-
+        
+        this.apiUrl = process.env.API_URL;
         this.handleChange = this.handleChange.bind(this);
         this.delete = this.delete.bind(this);
     }
@@ -51,7 +52,7 @@ class Dashboard extends React.Component {
     }
     
     onFetchDictionnary(){
-        axios.get('http://217.160.48.167/api/fetch/nissartDictionnary', {  headers: { 'Authorization': this.props.token } } )
+        axios.get(this.apiUrl + 'api/fetch/nissartDictionnary', {  headers: { 'Authorization': this.props.token } } )
         .then(res => {
            // console.log("dictionnaire", res.data.message)
             let setWords = [];
@@ -74,7 +75,7 @@ class Dashboard extends React.Component {
 
         let word = this.state.dictionnary.find(w => w._id === id);
         axios.get(
-            'http://217.160.48.167/api/fetch/oneWord/_id/' + id,
+            this.apiUrl + '/api/fetch/oneWord/_id/' + id,
             { headers: { 'Authorization': this.props.token } } 
         )
         .then(res => { 
@@ -110,7 +111,7 @@ class Dashboard extends React.Component {
 
     delete(){
         axios.delete(
-            'http://217.160.48.167/api/save/deleteWord',              
+            this.apiUrl + '/api/save/deleteWord',              
             {
                 headers: { "Authorization": this.props.token },
                 data: { word_id: this.state.selectedWord.value, userId: this.props.userId }, // req.data = req.body dans le serveur
@@ -136,7 +137,7 @@ class Dashboard extends React.Component {
     }
 
     openCrossWord () {
-        window.open('http://217.160.48.167/crossword/')
+        window.open(process.env.API_URL + 'crossword/')
     }
 
     render() {
@@ -157,7 +158,7 @@ class Dashboard extends React.Component {
                             noOptionsMessage={() => null}
                             value={this.state.selectedWord}
                             onChange={this.handleSelectChange.bind(this, 'selectedWord')}
-                            />
+                            />  
                             {!this.state.loading &&                            
                                 <Table className='mt-2' style={{borderRadius:10 }} bordered hover responsive >
                                     <thead>

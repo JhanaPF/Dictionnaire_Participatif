@@ -66,6 +66,7 @@ class WordModal extends React.Component {
             };
         }
 
+        this.apiUrl = process.env.API_URL;
 
         this.handleChange = this.handleChange.bind(this);
         this.save = this.save.bind(this);
@@ -136,7 +137,7 @@ class WordModal extends React.Component {
         const save = this.getData();
         //console.log(save.word, this.state.translated_definition)
         axios.post(
-            'http://217.160.48.167/api/save/updateWord', 
+            this.apiUrl + 'api/save/updateWord', 
             save, 
             { 
                 headers: { 'Authorization': this.props.token },
@@ -151,7 +152,7 @@ class WordModal extends React.Component {
         
         const save = this.getData();
         axios.post(
-            'http://217.160.48.167/api/save/word/', 
+            this.apiUrl + 'api/save/word/', 
             save, 
             { headers: { 'Authorization': this.props.token } },
         )

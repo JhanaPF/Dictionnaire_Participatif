@@ -6,7 +6,7 @@ module.exports = (req, res, next) => {
     // la variable est décodée depuis le jeton JWT
 
     if (req.decodedToken.isAdmin){
-        next();
+        next()
     }
-    else res.status(401);
-};
+    else res.status(401)
+}
